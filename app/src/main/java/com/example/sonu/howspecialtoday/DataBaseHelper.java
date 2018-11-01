@@ -30,6 +30,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public final static String DATABASE_PATH = "/data/data/com.example.sonu.howspecialtoday/databases/";
     public static final int DATABASE_VERSION = 1;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.myContext = context;
@@ -143,35 +144,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void saveDBFromAssetsToInternal(){
 
-        BufferedReader reader = null;
-        BufferedWriter writer = null;
-        Path path = Paths.get(DATABASE_PATH);
 
+        //Open your local db as the input stream
+        InputStream myInput = null;
         try {
-            File file=  new File(DATABASE_PATH+DATABASE_NAME);
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-            reader = new BufferedReader(
-                    new InputStreamReader(myContext.getAssets().open("day_list.db")));
-            writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
+            myInput = myContext.getAssets().open(DATABASE_NAME);
 
-            // do reading, usually loop until end of file reading
-            String mLine;
-            while ((mLine = reader.readLine()) != null) {
-                writer.write(mLine);
-                writer.newLine();
+            // Path to the just created empty db
+            String outFileName = DATABASE_PATH + DATABASE_NAME;
+
+            //Open the empty db as the output stream
+            OutputStream myOutput = new FileOutputStream(outFileName);
+
+            //transfer bytes from the inputfile to the outputfile
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = myInput.read(buffer))>0){
+                myOutput.write(buffer, 0, length);
             }
+
+            //Close the streams
+            myOutput.flush();
+            myOutput.close();
+            myInput.close();
         } catch (IOException e) {
-            //log the exception
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                    writer.close();
-                } catch (IOException e) {
-                    //log the exception
-                }
-            }
+            e.printStackTrace();
         }
 
     }
