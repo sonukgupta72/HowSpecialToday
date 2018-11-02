@@ -26,15 +26,18 @@ import java.nio.file.Paths;
 public class DataBaseHelper extends SQLiteOpenHelper {
     private SQLiteDatabase myDataBase;
     private final Context myContext;
-    private static final String DATABASE_NAME = "day_list.db";
+    public static final String DATABASE_NAME = "day_list.db";
     public final static String DATABASE_PATH = "/data/data/com.example.sonu.howspecialtoday/databases/";
     public static final int DATABASE_VERSION = 1;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.myContext = context;
-        saveDBFromAssetsToInternal();
+        try {
+            createDatabase();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -85,6 +88,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         {
         }
         return checkDB;
+
+//        SQLiteDatabase checkDB = null;
+//        try {
+//
+//            String myPath = DATABASE_PATH + DATABASE_NAME;
+//
+//            File file = new File(myPath);
+//            if (file.exists() && !file.isDirectory())
+//                checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READWRITE);
+//        } catch (SQLiteException e) {
+//            // database does't exist yet.
+//        }
+//
+//        if (checkDB != null) {
+//            checkDB.close();
+//        }
+//
+//        return checkDB != null ? true : false;
     }
     //Copies your database from your local assets-folder to the just created empty database in the system folder
     private void copyDataBase() throws IOException
@@ -141,36 +162,36 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void saveDBFromAssetsToInternal(){
-
-
-        //Open your local db as the input stream
-        InputStream myInput = null;
-        try {
-            myInput = myContext.getAssets().open(DATABASE_NAME);
-
-            // Path to the just created empty db
-            String outFileName = DATABASE_PATH + DATABASE_NAME;
-
-            //Open the empty db as the output stream
-            OutputStream myOutput = new FileOutputStream(outFileName);
-
-            //transfer bytes from the inputfile to the outputfile
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = myInput.read(buffer))>0){
-                myOutput.write(buffer, 0, length);
-            }
-
-            //Close the streams
-            myOutput.flush();
-            myOutput.close();
-            myInput.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
+//    @RequiresApi(api = Build.VERSION_CODES.O)
+//    private void saveDBFromAssetsToInternal(){
+//
+//
+//        //Open your local db as the input stream
+//        InputStream myInput = null;
+//        try {
+//            myInput = myContext.getAssets().open(DATABASE_NAME);
+//
+//            // Path to the just created empty db
+//            String outFileName = DATABASE_PATH + DATABASE_NAME;
+//
+//            //Open the empty db as the output stream
+//            OutputStream myOutput = new FileOutputStream(outFileName);
+//
+//            //transfer bytes from the inputfile to the outputfile
+//            byte[] buffer = new byte[1024];
+//            int length;
+//            while ((length = myInput.read(buffer))>0){
+//                myOutput.write(buffer, 0, length);
+//            }
+//
+//            //Close the streams
+//            myOutput.flush();
+//            myOutput.close();
+//            myInput.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 
 }

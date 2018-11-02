@@ -1,8 +1,15 @@
 package com.example.sonu.howspecialtoday;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.SyncStateContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -10,7 +17,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
+
+    private static final int EXTERNAL_STORAGE_REQUEST = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +40,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        DataBaseHelper dbhelper = new DataBaseHelper(getApplicationContext());
-
-        String  str = dbhelper.checkDataBase()? "exist": "Not exist";
-        Toast.makeText(this, str, Toast.LENGTH_LONG).show();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_REQUEST);
+            }
+        } else {
+            readData();
+        }
     }
 
     @Override
@@ -54,5 +70,40 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case EXTERNAL_STORAGE_REQUEST:
+                if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    readData();
+                }
+                else{
+                    //Permission denied.
+                }
+                break;
+        }
+    }
+
+    private void readData() {
+
+        DataBaseHelper dbhelper = new DataBaseHelper(getApplicationContext());
+        dbhelper.openDatabase();
+        SQLiteDatabase mSqLiteDatabase = dbhelper.getWritableDatabase();
+
+        Cursor cur;
+        cur = mSqLiteDatabase.rawQuery("select * from day_list where month = 11", null);
+
+        List<String> list = new ArrayList<>();
+        if (cur.moveToFirst()) {
+            do {
+                int day = cur.getColumnIndex("day");
+                int title= cur.getColumnIndex("title");
+                list.add(cur.getString(day).toString() + ": " + cur.getString(title).toString());
+            } while (cur.moveToNext());
+
+
+        }
     }
 }
